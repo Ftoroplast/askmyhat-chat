@@ -79,25 +79,27 @@
   chatItemBtn.className = "shpindler-chat__btn-item shpindler-chat__btn-item_btn";
   chatBtnList.appendChild(chatItemBtn);
 
-  var chatBtnImage = document.createElement("button");
+  var chatBtnImage = document.createElement("label");
   chatBtnImage.className = "shpindler-chat__btn shpindler-chat__btn_image";
   chatBtnImage.innerHTML = "Изображение";
+  chatBtnImage.setAttribute("for", "image");
   chatItemImage.appendChild(chatBtnImage);
+
+  var chatInputImage = document.createElement("input");
+  chatInputImage.className = "shpindler-chat__input shpindler-chat__input_image";
+  chatInputImage.setAttribute("id", "image");
+  chatInputImage.setAttribute("type", "file");
+  chatBtnImage.appendChild(chatInputImage);
 
   var chatBtnLocation = document.createElement("button");
   chatBtnLocation.className = "shpindler-chat__btn shpindler-chat__btn_location";
   chatBtnLocation.innerHTML = "Местоположение";
   chatItemLocation.appendChild(chatBtnLocation);
 
-  var chatBtnBtn = document.createElement("button");
-  chatBtnBtn.className = "shpindler-chat__btn shpindler-chat__btn_btn";
-  chatBtnBtn.innerHTML = "Кнопка";
-  chatItemBtn.appendChild(chatBtnBtn);
-
-  var chatInput = document.createElement("input");
-  chatInput.className = "shpindler-chat__input";
-  chatInput.setAttribute("placeholder", "Enter your message");
-  chatPanel.appendChild(chatInput);
+  var chatInputText = document.createElement("input");
+  chatInputText.className = "shpindler-chat__input";
+  chatInputText.setAttribute("placeholder", "Enter your message");
+  chatPanel.appendChild(chatInputText);
 
   var chatSubmitBtn = document.createElement("button");
   chatSubmitBtn.className = "shpindler-chat__btn shpindler-chat__btn_submit";
@@ -110,29 +112,39 @@
     url: ""
   };
 
-  var message = {
-    "from": "",
-    "datetime": "",
-    "text": "",
-    "image": "",
-    "location": [],
-    "buttons": []
-  };
+  // message.addImage = function (image) {
+  //   this["image"] = image;
+  // }
+  // chatBtnImage.onclick = message.addImage;
+  //
+  // message.addLocation = function () {
+  //
+  // }
+  // chatBtnLocation.onclick = message.addLocation;
 
-  message.addImage = function () {
-
-  }
-  chatBtnImage.onclick = message.addImage;
-
-  message.addLocation = function () {
-
-  }
-  chatBtnLocation.onclick = message.addLocation;
-
-  message.addButton = function () {
-
-  }
-  chatBtnBtn.onclick = message.addButton;
+  // message.addButton = function () {
+  //   var button = document.createElement("button");
+  //   button.innerHTML =
+  //   button.onclick = function () {
+  //     var message = {
+  //       "from": "Client",
+  //       "datetime": new Date().toLocaleString("ru", {
+  //         "day": "numeric",
+  //         "month": "numeric",
+  //         "year": "numeric",
+  //         "hour": "numeric",
+  //         "minute": "numeric",
+  //         "second": "numeric"
+  //       }),
+  //       "text":
+  //     }
+  //     message.sendMessage
+  //   }
+  //   this["buttons"].push(button);
+  // }
+  // chatBtnBtn.onclick = function () {
+  //   chatBtnCreationWindow.style.display = "block";
+  // };
 
   chatView.addMessage = function (message) {
     var chatMessage = document.createElement("li");
@@ -143,41 +155,62 @@
     }
     this.appendChild(chatMessage);
 
-    // var chatMessageAuthor = document.createElement("p");
-    // chatMessageAuthor.className = "shpindler-chat__author";
-    // if (message["from"] == "Client") {
-    //   chatMessageAuthor.classList.add("shpindler-chat__author_client");
-    // } else if (message["from"] == "Server") {
-    //   chatMessageAuthor.classList.add("shpindler-chat__author_server");
-    // }
-    // chatMessageAuthor.innerHTML = message["from"];
-    // chatMessage.appendChild(chatMessageAuthor);
-    //
-    // var chatMessageTime = document.createElement("time");
-    // chatMessageTime.className = "shpindler-chat__time";
-    // chatMessageTime.setAttribute("datetime", message["datetime"]);
-    // chatMessageTime.innerHTML = "(" + message["datetime"] + "):";
-    // chatMessageAuthor.appendChild(chatMessageTime);
-
     var chatMessageText = document.createElement("p");
     chatMessageText.className = "shpindler-chat__text";
     chatMessageText.innerHTML = message["text"];
     chatMessage.appendChild(chatMessageText);
 
     if (message["image"]) {
-      var chatMessageImageList = document.createElement("ul");
-      chatMessageImageList.className = "shpindler-chat__image-list";
-      chatMessage.appendChild(chatMessageImageList);
-
-      var chatMessageImageItem = document.createElement("li");
-      chatMessageImageItem.className = "shpindler-chat__image-item";
-      chatMessageImageList.appendChild(chatMessageImageItem);
+      var chatMessageImageLink = document.createElement("a");
+      chatMessageImageLink.className = "shpindler-chat__image";
+      chatMessageImageLink.setAttribute("href", message["image"]);
+      chatMessageImageLink.setAttribute("target", "blank_");
+      chatMessage.appendChild(chatMessageImageLink);
 
       var chatMessageImage = document.createElement("img");
       chatMessageImage.setAttribute("src", message["image"]);
-      chatMessageImageItem.appendChild(chatMessageImage);
+      chatMessageImageLink.appendChild(chatMessageImage);
     };
-  }
+
+    if (message["buttons"].length > 0) {
+      var chatMessageBtnList = document.createElement("ul");
+      chatMessageBtnList.className = "shpindler-chat__message-btn-list";
+      chatMessage.appendChild(chatMessageBtnList);
+
+      message["buttons"].forEach(function (button, i, arr) {
+        var chatMessageBtnItem = document.createElement("li");
+        chatMessageBtnItem.className = "shpindler-chat__message-btn-item";
+        chatMessageBtnList.appendChild(chatMessageBtnItem);
+
+        var chatMessageBtn = document.createElement("a");
+        chatMessageBtn.className = "shpindler-chat__message-btn";
+        chatMessageBtn.innerHTML = button["text"];
+        chatMessageBtnItem.appendChild(chatMessageBtn);
+
+        switch (button["type"]) {
+          case "callback":
+            chatMessageBtn.onclick = function () {
+              var message = {
+                "from": "client",
+                "datetime": new Date(milliseconds),
+                "text": button["callback"],
+                "image": "",
+                "location": [],
+                "buttons": []
+              }
+              chat.sendMessage(message, options);
+
+              return false;
+            }
+            break;
+          case "url":
+            chatMessageBtn.setAttribute("href", button["url"]);
+            chatMessageBtn.setAttribute("target", "blank_");
+            break;
+        }
+      });
+    };
+  };
 
   chatView.addErrorMessage = function (errorText) {
     var chatErrorMessage = document.createElement("li");
@@ -186,27 +219,40 @@
     this.appendChild(chatErrorMessage);
   }
 
-  chat.sendMessage = function (options) {
+  chat.initialize = function () {
     var xhr = new XMLHttpRequest();
     xhr.open("POST", options["url"], true);
+    var id = -1;
+    if (localStorage.getItem("id")) {
+      id = parseInt(localStorage.getItem("id"));
+    }
     var message = {
-      "from": "client",
-      "datetime": new Date().toLocaleString("ru", {
-        "day": "numeric",
-        "month": "numeric",
-        "year": "numeric",
-        "hour": "numeric",
-        "minute": "numeric",
-        "second": "numeric"
-      }),
-      "text": chatInput.value,
-      "image": "",
-      "location": "",
-      "buttons": ""
+      "isInitialization": true,
+      "id": id
     };
     xhr.send(JSON.stringify(message));
     xhr.onload = function () {
+      response = JSON.parse(responseText);
+      if (id === -1) {
+        localStorage.setItem("id", String(response["id"]));
+      } else {
+        response["history"].forEach(function (historyItem, historyItemOrder, historyList) {
+          chat.addMessage(historyItem);
+        });
+      }
+    }
+    xhr.onerror = function () {
+      xhr.send(JSON.stringify(message));
+    }
+  }
+
+  chat.sendMessage = function (message, options) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", options["url"], true);
+    xhr.send(JSON.stringify(message));
+    xhr.onload = function () {
       chatView.addMessage(message);
+      chatView.addMessage(JSON.parse(responseText));
     }
     xhr.onerror = function () {
       chatView.addErrorMessage("Error. Message wasn't sent.");
@@ -228,8 +274,8 @@
       }),
       "text": "Привет, мир!",
       "image": "http://placehold.it/500x200",
-      "location": "",
-      "buttons": ""
+      "location": [],
+      "buttons": []
     });
 
     chatView.addErrorMessage("test2");
@@ -239,8 +285,14 @@
       "datetime": String(new Date()),
       "text": "Привет, мир!",
       "image": "http://placehold.it/500x200",
-      "location": "",
-      "buttons": ""
+      "location": [],
+      "buttons": [
+        {
+          "type": "url",
+          "url": "http://vk.com/",
+          "text": "VK"
+        }
+      ]
     });
 
     chatView.addErrorMessage("test3");

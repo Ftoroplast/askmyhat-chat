@@ -7,8 +7,6 @@
   flex-direction: column;
   width: 450px;
   margin: 0 auto;
-  padding: 10px;
-  padding-top: 0;
 
   background-color: lightblue;
 }
@@ -27,8 +25,7 @@
   padding: 0;
   margin: 0;
   padding: 5px;
-  margin-bottom: 20px;
-  margin-left: -10px;
+
   border-left: 1px solid lightblue;
 
   background-image: linear-gradient(to right top, lightblue, white);
@@ -75,22 +72,28 @@
   margin-bottom: 5px;
 }
 
-.shpindler-chat__image-list {
-  display: flex;
-  align-content: space-between;
-  flex-wrap: wrap;
-  padding: 0;
-  margin: 0;
-  list-style: none;
+.shpindler-chat__image {
+  display: block;
 }
 
-.shpindler-chat__image-item {
-  margin-right: 5px;
-}
-
-.shpindler-chat__image-item img {
+.shpindler-chat__image img {
   max-width: 200px;
   height: auto;
+}
+
+.shpindler-chat__btn {
+  box-sizing: border-box;
+  display: flex;
+  padding: 0;
+
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+  font-family: "Arial", sans-serif;
 }
 
 .shpindler-chat__btn_close {
@@ -102,24 +105,22 @@
   line-height: 40px;
 }
 
-.shpindler-chat__btn {
-  box-sizing: border-box;
-
-  border: none;
-  background-color: transparent;
-  cursor: pointer;
-}
-
 .shpindler-chat__btn:focus {
   outline: none;
 }
 
 .shpindler-chat__btn_menu {
-
+  margin-right: 10px;
 }
 
 .shpindler-chat__panel {
   position: relative;
+  display: flex;
+  background-color: white;
+
+  box-sizing: border-box;
+  width: 100%;
+  border-left: 1px solid lightblue;
 }
 
 .shpindler-chat__btn-list {
@@ -136,13 +137,11 @@
 }
 
 .shpindler-chat__btn-item {
-  margin: 5px 0;
-  border-bottom: 1px solid lightgray;
+  margin: 10px 0;
 }
 
 .shpindler-chat_turned {
   padding: 0;
-  padding-right: 20px;
 }
 
 .shpindler-chat__btn_turn {
@@ -178,5 +177,50 @@
 
 .shpindler-chat_turned .shpindler-chat__header {
   height: auto;
-  margin-right: -10px;
+}
+
+.shpindler-chat__input {
+  flex-grow: 1;
+
+  border: none;
+  height: 30px;
+}
+
+.shpindler-chat__input_image {
+  display: none;
+}
+
+.shpindler-chat__input:focus {
+  outline: none;
+}
+
+.shpindler-chat__message-btn-list {
+  padding: 0;
+  margin: 0;
+
+  list-style: none;
+}
+
+.shpindler-chat__message-btn-item {
+
+}
+
+.shpindler-chat__message-btn {
+  display: inline-block;
+  padding: 5px;
+  color: black;
+  text-decoration: none;
+  border-radius: 20px;
+  background-color: lightblue;
+  box-shadow: inset 0 -1px 0 0;
+  cursor: pointer;
+}
+
+.shpindler-chat__message-btn:hover {
+  background-color: black;
+  color: lightblue;
+}
+
+.shpindler-chat__message-btn:active {
+  box-shadow: 0 -1px 0 0;
 }
