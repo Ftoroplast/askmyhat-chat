@@ -112,15 +112,38 @@
     url: ""
   };
 
-  // message.addImage = function (image) {
-  //   this["image"] = image;
-  // }
-  // chatBtnImage.onclick = message.addImage;
-  //
-  // message.addLocation = function () {
-  //
-  // }
-  // chatBtnLocation.onclick = message.addLocation;
+  function Message(sender) {
+    this["id"] = localStorage.getItem("id");
+    this["from"] = sender;
+    this["datetime"] = new Date(milliseconds);
+    this["text"] = "";
+    this["image"] = "";
+    this["location"] = "";
+    this["buttons"] = [];
+
+    this.addText = function (text) {
+      this["text"] = text;
+    }
+
+    this.addImage = function (image) {
+      this["image"] = image;
+    }
+
+    this.addLocation = function (location) {
+      this["location"] = location;
+    }
+
+    this.addButton = function (button) {
+      this["buttons"].push(button);
+    }
+  }
+
+  function Button(type, text, callback, url) {
+    this["type"] = type;
+    this["text"] = text;
+    this["callback"] = callback;
+    this["url"] = url;
+  }
 
   // message.addButton = function () {
   //   var button = document.createElement("button");
@@ -190,14 +213,8 @@
         switch (button["type"]) {
           case "callback":
             chatMessageBtn.onclick = function () {
-              var message = {
-                "from": "client",
-                "datetime": new Date(milliseconds),
-                "text": button["callback"],
-                "image": "",
-                "location": [],
-                "buttons": []
-              }
+              var message = new Message("client");
+              message.addText(button["callback"]);
               chat.sendMessage(message, options);
 
               return false;

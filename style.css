@@ -195,6 +195,8 @@
 }
 
 .shpindler-chat__message-btn-list {
+  display: flex;
+
   padding: 0;
   margin: 0;
 
@@ -206,7 +208,7 @@
 }
 
 .shpindler-chat__message-btn {
-  display: inline-block;
+  display: block;
   padding: 5px;
   color: black;
   text-decoration: none;
