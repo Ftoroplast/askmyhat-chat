@@ -1,6 +1,6 @@
 (function () {
   var options = {
-    "url": ""
+    "url": "https://smartcomtech.ru/ingos/web"
   };
 
   shpindlerChat(options);

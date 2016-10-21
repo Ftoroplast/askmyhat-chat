@@ -113,7 +113,7 @@ function shpindlerChat(options) {
   function Message(sender) {
     this["id"] = localStorage.getItem("id");
     this["from"] = sender;
-    this["datetime"] = new Date(milliseconds);
+    this["datetime"] = new Date();
     this["text"] = "";
     this["image"] = "";
     this["location"] = {};
@@ -169,9 +169,9 @@ function shpindlerChat(options) {
 
   chatView.addMessage = function (message) {
     var chatMessage = document.createElement("li");
-    if (message["from"] == "Client") {
+    if (message["from"] == "client") {
       chatMessage.className = "shpindler-chat__message shpindler-chat__message_client";
-    } else if (message["from"] == "Server") {
+    } else if (message["from"] == "server") {
       chatMessage.className = "shpindler-chat__message shpindler-chat__message_server";
     }
     this.appendChild(chatMessage);
@@ -193,58 +193,62 @@ function shpindlerChat(options) {
       chatMessageImageLink.appendChild(chatMessageImage);
     };
 
-    if (message["buttons"].length > 0) {
-      var chatMessageBtnList = document.createElement("ul");
-      chatMessageBtnList.className = "shpindler-chat__message-btn-list";
-      chatMessage.appendChild(chatMessageBtnList);
+    if ("buttons" in message) {
+      if (message["buttons"].length > 0) {
+        var chatMessageBtnList = document.createElement("ul");
+        chatMessageBtnList.className = "shpindler-chat__message-btn-list";
+        chatMessage.appendChild(chatMessageBtnList);
 
-      message["buttons"].forEach(function (button, i, arr) {
-        var chatMessageBtnItem = document.createElement("li");
-        chatMessageBtnItem.className = "shpindler-chat__message-btn-item";
-        chatMessageBtnList.appendChild(chatMessageBtnItem);
+        message["buttons"].forEach(function (button, i, arr) {
+          var chatMessageBtnItem = document.createElement("li");
+          chatMessageBtnItem.className = "shpindler-chat__message-btn-item";
+          chatMessageBtnList.appendChild(chatMessageBtnItem);
 
-        var chatMessageBtn = document.createElement("a");
-        chatMessageBtn.className = "shpindler-chat__message-btn";
-        chatMessageBtn.innerHTML = button["text"];
-        chatMessageBtnItem.appendChild(chatMessageBtn);
+          var chatMessageBtn = document.createElement("a");
+          chatMessageBtn.className = "shpindler-chat__message-btn";
+          chatMessageBtn.innerHTML = button["text"];
+          chatMessageBtnItem.appendChild(chatMessageBtn);
 
-        switch (button["type"]) {
-          case "callback":
-            chatMessageBtn.onclick = function () {
-              var message = new Message("client");
-              message.addText(button["callback"]);
-              chat.sendMessage(message, options);
+          switch (button["type"]) {
+            case "callback":
+              chatMessageBtn.onclick = function () {
+                var message = new Message("client");
+                message.addText(button["callback"]);
+                chat.sendMessage(message);
 
-              return false;
-            }
-            break;
-          case "url":
-            chatMessageBtn.setAttribute("href", button["url"]);
-            chatMessageBtn.setAttribute("target", "blank_");
-            break;
-        }
-      });
+                return false;
+              }
+              break;
+            case "url":
+              chatMessageBtn.setAttribute("href", button["url"]);
+              chatMessageBtn.setAttribute("target", "blank_");
+              break;
+          }
+        });
+      };
     };
 
-    if (message["location"]["longitude"] && message["location"]["latitude"]) {
-      var map = document.createElement("a");
-      map.className = "shpindler-chat__map";
-      map.id = "map" + (++mapNumber);
-      hrefUrl = "https://www.google.ru/maps/@" + message["location"]["latitude"] + "," + message["location"]["longitude"] + "," + mapZoom + "z";
-      map.setAttribute("href", hrefUrl);
-      chatMessage.appendChild(map);
+    if ("location" in message) {
+      if (message["location"]["longitude"] && message["location"]["latitude"]) {
+        var map = document.createElement("a");
+        map.className = "shpindler-chat__map";
+        map.id = "map" + (++mapNumber);
+        hrefUrl = "https://www.google.ru/maps/@" + message["location"]["latitude"] + "," + message["location"]["longitude"] + "," + mapZoom + "z";
+        map.setAttribute("href", hrefUrl);
+        chatMessage.appendChild(map);
 
-      var mapImage = document.createElement("img");
-      mapImage.className = "shpindler-chat__map-image";
-      var mapZoom = 8;
-      var mapSize = "300x300";
-      var googleAPIKey = "AIzaSyBTtMin1_WIbmQDPRP2GWMl79Xo4H3wAaU";
-      var parameters = "center=" + message["location"]["latitude"] + "," + message["location"]["longitude"] + "&zoom=" + mapZoom + "&size=" + mapSize + "&key=" + googleAPIKey;
-      var url = "https://maps.googleapis.com/maps/api/staticmap?" + parameters;
-      var srcUrl = "";
-      mapImage.setAttribute("src", "https://maps.googleapis.com/maps/api/staticmap?center=50,50&zoom=8&size=300x300&key=AIzaSyBTtMin1_WIbmQDPRP2GWMl79Xo4H3wAaU");
-      map.appendChild(mapImage);
-    }
+        var mapImage = document.createElement("img");
+        mapImage.className = "shpindler-chat__map-image";
+        var mapZoom = 8;
+        var mapSize = "300x300";
+        var googleAPIKey = "AIzaSyBTtMin1_WIbmQDPRP2GWMl79Xo4H3wAaU";
+        var parameters = "center=" + message["location"]["latitude"] + "," + message["location"]["longitude"] + "&zoom=" + mapZoom + "&size=" + mapSize + "&key=" + googleAPIKey;
+        var url = "https://maps.googleapis.com/maps/api/staticmap?" + parameters;
+        var srcUrl = "";
+        mapImage.setAttribute("src", "https://maps.googleapis.com/maps/api/staticmap?center=50,50&zoom=8&size=300x300&key=AIzaSyBTtMin1_WIbmQDPRP2GWMl79Xo4H3wAaU");
+        map.appendChild(mapImage);
+      }
+    };
   };
 
   chatView.addErrorMessage = function (errorText) {
@@ -260,39 +264,56 @@ function shpindlerChat(options) {
     var id = -1;
     if (localStorage.getItem("id")) {
       id = parseInt(localStorage.getItem("id"));
-    }
+    };
     var message = {
       "isInitialization": true,
       "id": id
     };
     xhr.send(JSON.stringify(message));
     xhr.onload = function () {
-      response = JSON.parse(responseText);
+      var response = JSON.parse(this.responseText);
       if (id === -1) {
-        localStorage.setItem("id", String(response["id"]));
+        if ("id" in response) {
+          localStorage.setItem("id", String(response["id"]));
+        }
       } else {
-        response["history"].forEach(function (historyItem, historyItemOrder, historyList) {
-          chat.addMessage(historyItem);
-        });
+        if ("history" in response) {
+          response["history"].forEach(function (historyItem, historyItemOrder, historyList) {
+            chatView.addMessage(historyItem);
+          });
+        }
       }
     }
-    xhr.onerror = function () {
-      xhr.send(JSON.stringify(message));
-    }
+    // xhr.onerror = function () {
+    //   this.open("POST", options["url"], true);
+    //   this.send(JSON.stringify(message));
+    // }
   }
 
-  chat.sendMessage = function (message, options) {
+  chat.sendMessage = function (message) {
     var xhr = new XMLHttpRequest();
     xhr.open("POST", options["url"], true);
     xhr.send(JSON.stringify(message));
     xhr.onload = function () {
       chatView.addMessage(message);
-      chatView.addMessage(JSON.parse(responseText));
+      var response = JSON.parse(this.responseText);
+      response["from"] = "server";
+      chatView.addMessage(response);
     }
     xhr.onerror = function () {
       chatView.addErrorMessage("Error. Message wasn't sent.");
     }
   };
 
-  chatSubmitBtn.onclick = chat.sendMessage;
+  chatInputText.onchange = function () {
+
+  }
+
+  chatSubmitBtn.onclick = function () {
+    var message = new Message("client");
+    chatInputText.onchange();
+    message.addText(chatInputText.value);
+    chat.sendMessage(message);
+  }
+  chat.initialize();
 };
