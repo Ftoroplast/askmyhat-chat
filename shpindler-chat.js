@@ -1,4 +1,4 @@
-(function () {
+function shpindlerChat(options) {
   "use strict";
 
   /* Создание чата скриптом */
@@ -108,9 +108,7 @@
 
   /* Основная логика */
 
-  var options = {
-    url: ""
-  };
+  var mapNumber = 0;
 
   function Message(sender) {
     this["id"] = localStorage.getItem("id");
@@ -118,7 +116,7 @@
     this["datetime"] = new Date(milliseconds);
     this["text"] = "";
     this["image"] = "";
-    this["location"] = "";
+    this["location"] = {};
     this["buttons"] = [];
 
     this.addText = function (text) {
@@ -227,6 +225,26 @@
         }
       });
     };
+
+    if (message["location"]["longitude"] && message["location"]["latitude"]) {
+      var map = document.createElement("a");
+      map.className = "shpindler-chat__map";
+      map.id = "map" + (++mapNumber);
+      hrefUrl = "https://www.google.ru/maps/@" + message["location"]["latitude"] + "," + message["location"]["longitude"] + "," + mapZoom + "z";
+      map.setAttribute("href", hrefUrl);
+      chatMessage.appendChild(map);
+
+      var mapImage = document.createElement("img");
+      mapImage.className = "shpindler-chat__map-image";
+      var mapZoom = 8;
+      var mapSize = "300x300";
+      var googleAPIKey = "AIzaSyBTtMin1_WIbmQDPRP2GWMl79Xo4H3wAaU";
+      var parameters = "center=" + message["location"]["latitude"] + "," + message["location"]["longitude"] + "&zoom=" + mapZoom + "&size=" + mapSize + "&key=" + googleAPIKey;
+      var url = "https://maps.googleapis.com/maps/api/staticmap?" + parameters;
+      var srcUrl = "";
+      mapImage.setAttribute("src", "https://maps.googleapis.com/maps/api/staticmap?center=50,50&zoom=8&size=300x300&key=AIzaSyBTtMin1_WIbmQDPRP2GWMl79Xo4H3wAaU");
+      map.appendChild(mapImage);
+    }
   };
 
   chatView.addErrorMessage = function (errorText) {
@@ -276,42 +294,5 @@
     }
   };
 
-  (function Test() {
-    chatView.addErrorMessage("test1");
-
-    chatView.addMessage({
-      "from": "Client",
-      "datetime": new Date().toLocaleString("ru", {
-        "day": "numeric",
-        "month": "numeric",
-        "year": "numeric",
-        "hour": "numeric",
-        "minute": "numeric",
-        "second": "numeric"
-      }),
-      "text": "Привет, мир!",
-      "image": "http://placehold.it/500x200",
-      "location": [],
-      "buttons": []
-    });
-
-    chatView.addErrorMessage("test2");
-
-    chatView.addMessage({
-      "from": "Server",
-      "datetime": String(new Date()),
-      "text": "Привет, мир!",
-      "image": "http://placehold.it/500x200",
-      "location": [],
-      "buttons": [
-        {
-          "type": "url",
-          "url": "http://vk.com/",
-          "text": "VK"
-        }
-      ]
-    });
-
-    chatView.addErrorMessage("test3");
-  })();
-})();
+  chatSubmitBtn.onclick = chat.sendMessage;
+};

@@ -226,3 +226,7 @@
 .shpindler-chat__message-btn:active {
   box-shadow: 0 -1px 0 0;
 }
+
+.shpindler-chat__map {
+  display: block;
+}
