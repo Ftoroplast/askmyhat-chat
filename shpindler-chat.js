@@ -52,20 +52,23 @@ function shpindlerChat(options) {
   chatMenuBtn.className = "shpindler-chat__btn shpindler-chat__btn_menu";
   chatMenuBtn.innerHTML = "Прикрепить";
   chatPanel.appendChild(chatMenuBtn);
-  chatMenuBtn.onclick = function () {
+  chatMenuBtn.onmouseover = function () {
     chatBtnList.toggleVisibility();
   }
 
   var chatBtnList = document.createElement("ul");
   chatBtnList.className = "shpindler-chat__btn-list";
   chatPanel.appendChild(chatBtnList);
-  chatBtnList.toggleVisibility = function () {
-    if (getComputedStyle(this).display == "none") {
-      this.style.display = "block";
-    } else if (getComputedStyle(this).display == "block") {
-      this.style.display = "none";
-    }
-  }
+  chatBtnList.toggleVisibility = toggleVisibility;
+  var chatBtnListTimer = {};
+  chatBtnList.onmouseleave = function () {
+    chatBtnListTimer = setTimeout(function () {
+      chatBtnList.toggleVisibility();
+    }, 500);
+  };
+  chatBtnList.onmouseenter = function () {
+    clearTimeout(chatBtnListTimer);
+  };
 
   var chatItemImage = document.createElement("li");
   chatItemImage.className = "shpindler-chat__btn-item shpindler-chat__btn-item_image";
@@ -74,10 +77,6 @@ function shpindlerChat(options) {
   var chatItemLocation = document.createElement("li");
   chatItemLocation.className = "shpindler-chat__btn-item shpindler-chat__btn-item_location";
   chatBtnList.appendChild(chatItemLocation);
-
-  var chatItemBtn = document.createElement("li");
-  chatItemBtn.className = "shpindler-chat__btn-item shpindler-chat__btn-item_btn";
-  chatBtnList.appendChild(chatItemBtn);
 
   var chatBtnImage = document.createElement("label");
   chatBtnImage.className = "shpindler-chat__btn shpindler-chat__btn_image";
@@ -98,13 +97,44 @@ function shpindlerChat(options) {
 
   var chatInputText = document.createElement("input");
   chatInputText.className = "shpindler-chat__input";
-  chatInputText.setAttribute("placeholder", "Enter your message");
+  chatInputText.setAttribute("placeholder", "Write a message...");
   chatPanel.appendChild(chatInputText);
 
   var chatSubmitBtn = document.createElement("button");
   chatSubmitBtn.className = "shpindler-chat__btn shpindler-chat__btn_submit";
   chatSubmitBtn.innerHTML = "Отправить";
   chatPanel.appendChild(chatSubmitBtn);
+
+  var imageAddWindow = document.createElement("div");
+  imageAddWindow.className = "shpindler-chat__image-add-window";
+  chat.appendChild(imageAddWindow);
+  imageAddWindow.toggleVisibility = toggleVisibility;
+
+  var imageAddWindowImageWrapper = document.createElement("div");
+  imageAddWindowImageWrapper.className = "shpindler-chat__image-add-window-image-wrapper";
+  imageAddWindow.appendChild(imageAddWindowImageWrapper);
+
+  var imageAddWindowImage = document.createElement("img");
+  imageAddWindowImageWrapper.appendChild(imageAddWindowImage);
+
+  var imageAddWindowInput = document.createElement("input");
+  imageAddWindowInput.className = "shpindler-chat__input shpindler-chat__input_image-add-window";
+  imageAddWindowInput.setAttribute("placeholder", "Write a message...");
+  imageAddWindow.appendChild(imageAddWindowInput);
+
+  var imageAddWindowSubmit = document.createElement("button");
+  imageAddWindowSubmit.className = "shpindler-chat__btn shpindler-chat__btn_image-add-window";
+  imageAddWindowSubmit.innerHTML = "Отправить";
+  imageAddWindow.appendChild(imageAddWindowSubmit);
+
+  var chatOverlay = document.createElement("div");
+  chatOverlay.className = "shpindler-chat__overlay shpindler-chat__overlay_image-add-window";
+  chat.appendChild(chatOverlay);
+  chatOverlay.toggleVisibility = toggleVisibility;
+  chatOverlay.onclick = function () {
+    imageAddWindow.toggleVisibility();
+    this.toggleVisibility();
+  };
 
   /* Основная логика */
 
@@ -143,30 +173,6 @@ function shpindlerChat(options) {
     this["url"] = url;
   }
 
-  // message.addButton = function () {
-  //   var button = document.createElement("button");
-  //   button.innerHTML =
-  //   button.onclick = function () {
-  //     var message = {
-  //       "from": "Client",
-  //       "datetime": new Date().toLocaleString("ru", {
-  //         "day": "numeric",
-  //         "month": "numeric",
-  //         "year": "numeric",
-  //         "hour": "numeric",
-  //         "minute": "numeric",
-  //         "second": "numeric"
-  //       }),
-  //       "text":
-  //     }
-  //     message.sendMessage
-  //   }
-  //   this["buttons"].push(button);
-  // }
-  // chatBtnBtn.onclick = function () {
-  //   chatBtnCreationWindow.style.display = "block";
-  // };
-
   chatView.addMessage = function (message) {
     var chatMessage = document.createElement("li");
     if (message["from"] == "client") {
@@ -184,13 +190,39 @@ function shpindlerChat(options) {
     if (message["image"]) {
       var chatMessageImageLink = document.createElement("a");
       chatMessageImageLink.className = "shpindler-chat__image";
-      chatMessageImageLink.setAttribute("href", message["image"]);
+      chatMessageImageLink.onclick = function () {
+        var overlay = document.createElement("div");
+        overlay.className = "shpindler-chat__overlay shpindler-chat__overlay_popup";
+        document.body.appendChild(overlay);
+        overlay.onclick = function () {
+          document.body.removeChild(popup);
+          document.body.removeChild(this);
+        }
+
+        var popup = document.createElement("div");
+        popup.className = "shpindler-chat__popup shpindler-chat__popup_image";
+        document.body.appendChild(popup);
+
+        var popupImage = document.createElement("img");
+        popupImage.setAttribute("src", imageReader.result);
+        popup.appendChild(popupImage);
+
+        return false;
+      }
+
       chatMessageImageLink.setAttribute("target", "blank_");
       chatMessage.appendChild(chatMessageImageLink);
 
       var chatMessageImage = document.createElement("img");
-      chatMessageImage.setAttribute("src", message["image"]);
       chatMessageImageLink.appendChild(chatMessageImage);
+
+      var imageReader = new FileReader();
+      imageReader.onloadend = function () {
+        chatMessageImageLink.setAttribute("href", imageReader.result);
+        chatMessageImage.setAttribute("src", imageReader.result);
+        message["image"] = imageReader.result;
+      };
+      imageReader.readAsDataURL(message["image"]);
     };
 
     if ("buttons" in message) {
@@ -233,22 +265,24 @@ function shpindlerChat(options) {
         var map = document.createElement("a");
         map.className = "shpindler-chat__map";
         map.id = "map" + (++mapNumber);
-        hrefUrl = "https://www.google.ru/maps/@" + message["location"]["latitude"] + "," + message["location"]["longitude"] + "," + mapZoom + "z";
-        map.setAttribute("href", hrefUrl);
+        var mapZoom = 15;
+        var hrefURL = "https://www.google.ru/maps/@" + message["location"]["latitude"] + "," + message["location"]["longitude"] + "," + mapZoom + "z";
+        map.setAttribute("href", hrefURL);
+        map.setAttribute("target", "blank_");
         chatMessage.appendChild(map);
 
         var mapImage = document.createElement("img");
         mapImage.className = "shpindler-chat__map-image";
-        var mapZoom = 8;
         var mapSize = "300x300";
         var googleAPIKey = "AIzaSyBTtMin1_WIbmQDPRP2GWMl79Xo4H3wAaU";
         var parameters = "center=" + message["location"]["latitude"] + "," + message["location"]["longitude"] + "&zoom=" + mapZoom + "&size=" + mapSize + "&key=" + googleAPIKey;
-        var url = "https://maps.googleapis.com/maps/api/staticmap?" + parameters;
-        var srcUrl = "";
-        mapImage.setAttribute("src", "https://maps.googleapis.com/maps/api/staticmap?center=50,50&zoom=8&size=300x300&key=AIzaSyBTtMin1_WIbmQDPRP2GWMl79Xo4H3wAaU");
+        var srcURL = "https://maps.googleapis.com/maps/api/staticmap?" + parameters;
+        mapImage.setAttribute("src", srcURL);
         map.appendChild(mapImage);
       }
     };
+
+    chatMessage.scrollIntoView();
   };
 
   chatView.addErrorMessage = function (errorText) {
@@ -256,6 +290,8 @@ function shpindlerChat(options) {
     chatErrorMessage.className = "shpindler-chat__message shpindler-chat__message_error";
     chatErrorMessage.innerHTML = errorText;
     this.appendChild(chatErrorMessage);
+
+    chatErrorMessage.scrollIntoView();
   }
 
   chat.initialize = function () {
@@ -279,41 +315,175 @@ function shpindlerChat(options) {
       } else {
         if ("history" in response) {
           response["history"].forEach(function (historyItem, historyItemOrder, historyList) {
+            if ("image" in historyItem) {
+              if (historyItem["image"]) {
+                try {
+                  historyItem["image"] = b64toBlob(historyItem["image"]);
+                } catch(err) {
+                  historyItem["image"] = historyItem["image"];
+                }
+              }
+            }
             chatView.addMessage(historyItem);
           });
         }
       }
     }
-    // xhr.onerror = function () {
-    //   this.open("POST", options["url"], true);
-    //   this.send(JSON.stringify(message));
-    // }
-  }
+    xhr.onerror = function () {
+      chatView.addErrorMessage("Error while initializing.");
+    }
+  };
 
   chat.sendMessage = function (message) {
     var xhr = new XMLHttpRequest();
     xhr.open("POST", options["url"], true);
+    chatView.addMessage(message);
+    if (message["image"]) {
+      var imageReader = new FileReader();
+      message["image"] = imageReader.readAsDataURL(message["image"]);
+    };
     xhr.send(JSON.stringify(message));
     xhr.onload = function () {
-      chatView.addMessage(message);
       var response = JSON.parse(this.responseText);
       response["from"] = "server";
+      if ("image" in response) {
+        if (response["image"]) {
+          response["image"] = b64toBlob(response["image"]);
+        }
+      }
       chatView.addMessage(response);
     }
     xhr.onerror = function () {
-      chatView.addErrorMessage("Error. Message wasn't sent.");
+      chatView.addErrorMessage("Message wasn't sent.");
     }
   };
 
   chatInputText.onchange = function () {
+  };
 
+  imageAddWindowInput.onchange = function () {
+  };
+
+  chatBtnLocation.onclick = function () {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(success, error);
+
+      function success(position) {
+        var location = {};
+        location["latitude"] = position.coords.latitude;
+        location["longitude"] = position.coords.longitude;
+        var message = new Message("client");
+        message.addLocation(location);
+        chat.sendMessage(message);
+      };
+
+      function error() {
+        chatView.addErrorMessage("Can't detect your location.");
+      };
+    };
+  };
+
+  chatInputImage.onchange = function () {
+    chatOverlay.toggleVisibility();
+    imageAddWindow.toggleVisibility();
+    var imageReader = new FileReader();
+    imageReader.onloadend = function () {
+      imageAddWindowImage.setAttribute("src", this.result);
+    }
+    imageReader.readAsDataURL(this.files[0]);
   }
 
   chatSubmitBtn.onclick = function () {
     var message = new Message("client");
     chatInputText.onchange();
+    message.addImage(chatInputImage.files[0] || "");
     message.addText(chatInputText.value);
-    chat.sendMessage(message);
+    if (message["text"] || message["image"]) {
+      chat.sendMessage(message);
+    };
+    clearFields();
+  };
+
+  chatInputText.onfocus = function () {
+    window.addEventListener("keypress", submitOnEnter);
+  };
+
+  chatInputText.onblur = function () {
+    window.removeEventListener("keypress", submitOnEnter);
+  };
+
+  imageAddWindowInput.onfocus = function () {
+    window.addEventListener("keypress", submitOnEnterImageAddWindow);
+  };
+
+  imageAddWindowInput.onblur = function () {
+    window.removeEventListener("keypress", submitOnEnterImageAddWindow);
+  };
+
+  imageAddWindowSubmit.onclick = function () {
+    var message = new Message("client");
+    imageAddWindowInput.onchange();
+    message.addImage(chatInputImage.files[0] || "");
+    message.addText(imageAddWindowInput.value);
+    if (message["text"] || message["image"]) {
+      chat.sendMessage(message);
+    }
+    imageAddWindow.toggleVisibility();
+    chatOverlay.toggleVisibility();
+    clearFields();
   }
+
   chat.initialize();
+
+  function b64toBlob(b64Data, contentType, sliceSize) {
+    contentType = contentType || '';
+    sliceSize = sliceSize || 512;
+
+    var byteCharacters = atob(b64Data);
+    var byteArrays = [];
+
+    for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+      var slice = byteCharacters.slice(offset, offset + sliceSize);
+
+      var byteNumbers = new Array(slice.length);
+      for (var i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i);
+      }
+
+      var byteArray = new Uint8Array(byteNumbers);
+
+      byteArrays.push(byteArray);
+    }
+
+    var blob = new Blob(byteArrays, {type: contentType});
+    return blob;
+  };
+
+  function toggleVisibility() {
+    if (getComputedStyle(this).display == "none") {
+      this.style.display = "flex";
+    } else if (getComputedStyle(this).display == "flex") {
+      this.style.display = "none";
+    }
+  };
+
+  function submitOnEnter(e) {
+    if (e.keyCode === 13) {
+      chatSubmitBtn.onclick();
+    };
+  };
+
+  function submitOnEnterImageAddWindow(e) {
+    if (e.keyCode === 13) {
+      imageAddWindowSubmit.onclick();
+    };
+  };
+
+  function clearFields() {
+    chatInputText.value = "";
+    chatInputText.onchange();
+    imageAddWindowInput.value = "";
+    imageAddWindowInput.onchange();
+    chatInputImage.value = "";
+  };
 };
